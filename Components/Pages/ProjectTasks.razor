@@ -1,0 +1,76 @@
+@page "/tasks"
+@using ConstructionScheduler.Data
+@using ConstructionScheduler.Models
+@inject AppDbContext _context
+
+<h1>Construction Project Tasks</h1>
+
+<h3>Add New Task</h3>
+<EditForm Model="@newTask" OnValidSubmit="AddTask" FormName="ProjectTaskForm">
+    <InputText @bind-Value="newTask.Title" placeholder="Task Title" class="form-control mb-2" />
+    <InputText @bind-Value="newTask.Description" placeholder="Task Description" class="form-control mb-2" />
+    <InputDate TValue="DateTime" @bind-Value="newTask.StartDate" class="form-control mb-2" />
+    <InputDate TValue="DateTime?" @bind-Value="newTask.EndDate" class="form-control mb-2" />
+    <InputText @bind-Value="newTask.Status" placeholder="Status (e.g., Not Started)" class="form-control mb-2" />
+    <button type="submit" class="btn btn-primary">Add Task</button>
+</EditForm>
+
+
+
+
+
+<hr />
+
+<h3>Existing Tasks</h3>
+@if (tasks == null)
+{
+    <p><em>Loading tasks...</em></p>
+}
+else if (!tasks.Any())
+{
+    <p>No tasks added yet.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var task in tasks)
+            {
+                <tr>
+                    <td>@task.Title</td>
+                    <td>@task.Description</td>
+                    <td>@task.StartDate.ToShortDateString()</td>
+                    <td>@(task.EndDate?.ToShortDateString() ?? "-")</td>
+                    <td>@task.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<ProjectTask>? tasks;
+    private ProjectTask newTask = new ProjectTask { StartDate = DateTime.Today, Status = "Not Started" };
+
+    protected override void OnInitialized()
+    {
+        tasks = _context.ProjectTasks.ToList();
+    }
+
+    private void AddTask()
+    {
+        _context.ProjectTasks.Add(newTask);
+        _context.SaveChanges();
+        tasks = _context.ProjectTasks.ToList();
+        newTask = new ProjectTask { StartDate = DateTime.Today, Status = "Not Started" };
+    }
+}
